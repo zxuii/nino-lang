@@ -1,0 +1,7 @@
+fun hello() {
+  let x = 5
+  let text = "x = "
+  print(text, 5)  
+}
+
+hello()
