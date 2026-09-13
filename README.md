@@ -6,9 +6,9 @@ Ya kalian ga salah dengar, nama bahasa pemrograman ini adalah `Nino`. Rencananya
 
 berikut todo-todo yang belum selesai/sudah:
 
-[x] Token, Lexer sederhana
-[ ] Parser, AST
-[ ] Codegen ke javascript
-[ ] Semantic Analyzer
-[ ] Type Annotation
-[ ] ... todo akan bertambah seiring berkembangnya proyek. 
+- [x] Token, Lexer sederhana
+- [ ] Parser, AST
+- [ ] Codegen ke javascript
+- [ ] Semantic Analyzer
+- [ ] Type Annotation
+- [ ] ... todo akan bertambah seiring berkembangnya proyek. 
