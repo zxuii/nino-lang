@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from enum import Enum, auto
 from pprint import pprint
+import sys
 
 class TokenType(Enum):
   # keyword
@@ -21,6 +22,9 @@ class TokenType(Enum):
   # tipe data
   INT = auto()          # 1..9
   STRING = auto()       # ".."
+
+  # special
+  EOF = auto()          # end of file
 
 @dataclass
 class Token():
@@ -55,6 +59,8 @@ class Lexer():
     while self.ch != '':
       self.scan()
 
+    self.tokens.append(Token(TokenType.EOF, "end of file"))
+
   def is_int(self) -> bool:
     return '0' <= self.ch <= '9'
 
@@ -77,9 +83,9 @@ class Lexer():
 
   def parse_keyword_or_ident(self):
     ident = self.get_ident()
-    if self.ch == "let":
+    if ident == "let":
       self.tokens.append(Token(TokenType.LET, "let"))      
-    if self.ch == "fun":
+    elif ident == "fun":
       self.tokens.append(Token(TokenType.FUN, "fun"))
     else:
       self.tokens.append(Token(TokenType.IDENTIFIER, ident))     
@@ -129,10 +135,133 @@ class Lexer():
     else:
       self.parse_keyword_or_ident()
 
+
+# EXPRESSION
+
+@dataclass
+class Node:
+  pass
+
+@dataclass
+class Program(Node):
+  block: Node
+
+@dataclass
+class UnaryOp(Node):
+  op: Token
+  value: Node
+
+@dataclass
+class BinOp(Node):
+  left: Node
+  op: Token
+  right: Node
+
+@dataclass
+class IntLit(Node):
+  value: int
+
+@dataclass
+class StringLit(Node):
+  value: str
+
+class Parser():
+  def __init__(self, tokens):
+    self.tokens = tokens
+    self.ct = None
+    self.pos = 0
+
+    self.advance()
+
+  def is_at_end(self):
+    return self.ct and self.ct.ttype == TokenType.EOF
+
+  def consume(self, ty):
+    if self.ct and self.ct.ttype == ty:
+      self.advance()
+    else:
+      print("eror pokoknya")
+
+  def advance(self):
+    if not self.is_at_end():
+      self.ct = self.tokens[self.pos]
+      self.pos += 1
+    else:
+      self.ct = None
+
+  def parse_expr(self):
+    return self.parse_additive()
+
+  def parse_additive(self):
+    expr = self.parse_term()
+
+    if self.ct.ttype == TokenType.PLUS:
+      self.consume(TokenType.PLUS)
+      return BinOp(expr, self.ct.ttype, self.parse_term())
+    elif self.ct.ttype == TokenType.MINUS:
+      self.consume(TokenType.MINUS)
+      return BinOp(expr, self.ct.ttype, self.parse_term())
+
+    return expr
+    
+  def parse_term(self):
+        expr = self.parse_factor()
+        # print(node)
+
+
+        while self.ct and self.ct.ttype in [TokenType.MUL, TokenType.DIV]:
+            tok = self.ct
+            if tok.ttype == TokenType.MUL:
+                self.consume(TokenType.MUL)
+            elif tok.ttype == TokenType.DIV:
+                self.consume(TokenType.DIV)
+
+            expr = BinOp(expr, tok, self.parse_factor())
+        return expr
+
+  def parse_factor(self):
+        expr = self.parse_primary()
+        # print(node)
+        while self.ct and self.ct.ttype in [TokenType.PLUS, TokenType.MINUS]:
+            tok = self.ct
+            if tok.ttype == TokenType.PLUS:
+                self.consume(TokenType.PLUS)
+            elif tok.ttype == TokenType.MINUS:
+                self.consume(TokenType.MINUS)
+
+            expr = BinOp(expr, tok, self.parse_primary())
+        return expr
+
+  def parse_primary(self):
+    tok = self.ct
+    if tok.ttype == TokenType.LPAREN:
+      self.consume(TokenType.LPAREN)
+      node = self.parse_expr()
+      self.consume(TokenType.RPAREN)
+      return node
+    elif tok.ttype == TokenType.INT:
+      self.consume(TokenType.INT)
+      return IntLit(tok)
+    elif tok.ttype == TokenType.STRING:
+      self.consume(TokenType.STRING)
+      return StringLit(tok)
+    else:
+      raise SyntaxError(f"unexpected token {tok}")
+
+def run():
+  if len(sys.argv) > 1:
+    f = open(sys.argv[1], "r")
+    code = f.read()
+    lexer = Lexer(code)
+    lexer.tokenize()
+    parser = Parser(lexer.tokens)
+    return parser.parse_expr()
+  else:
+    print("Usage: nino <file.nino>")
+
 def main():
-  tokens = Lexer('let x = "test string if it work"')
-  tokens.tokenize()
-  pprint(tokens.tokens)
+  tokens = run()
+  pprint(tokens)
 
 if __name__ == "__main__":
   main()
