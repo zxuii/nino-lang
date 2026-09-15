@@ -205,32 +205,30 @@ class Parser():
     return expr
     
   def parse_term(self):
-        expr = self.parse_factor()
-        # print(node)
+    expr = self.parse_factor()
+    # print(node)
+    while self.ct and self.ct.ttype in [TokenType.MUL, TokenType.DIV]:
+      tok = self.ct
+      if tok.ttype == TokenType.MUL:
+          self.consume(TokenType.MUL)
+      elif tok.ttype == TokenType.DIV:
+          self.consume(TokenType.DIV)
 
-
-        while self.ct and self.ct.ttype in [TokenType.MUL, TokenType.DIV]:
-            tok = self.ct
-            if tok.ttype == TokenType.MUL:
-                self.consume(TokenType.MUL)
-            elif tok.ttype == TokenType.DIV:
-                self.consume(TokenType.DIV)
-
-            expr = BinOp(expr, tok, self.parse_factor())
-        return expr
+      expr = BinOp(expr, tok, self.parse_factor())
+    return expr
 
   def parse_factor(self):
-        expr = self.parse_primary()
-        # print(node)
-        while self.ct and self.ct.ttype in [TokenType.PLUS, TokenType.MINUS]:
-            tok = self.ct
-            if tok.ttype == TokenType.PLUS:
-                self.consume(TokenType.PLUS)
-            elif tok.ttype == TokenType.MINUS:
-                self.consume(TokenType.MINUS)
+    expr = self.parse_primary()
+    # print(node)
+    while self.ct and self.ct.ttype in [TokenType.PLUS, TokenType.MINUS]:
+        tok = self.ct
+        if tok.ttype == TokenType.PLUS:
+            self.consume(TokenType.PLUS)
+        elif tok.ttype == TokenType.MINUS:
+            self.consume(TokenType.MINUS)
 
-            expr = BinOp(expr, tok, self.parse_primary())
-        return expr
+        expr = BinOp(expr, tok, self.parse_primary())
+    return expr
 
   def parse_primary(self):
     tok = self.ct
